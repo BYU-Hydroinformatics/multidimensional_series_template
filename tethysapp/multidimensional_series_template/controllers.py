@@ -155,7 +155,7 @@ def home(request):
         'gjFlOp': gj_fillopacity,
 
         # metadata
-        'thredds_url': App.get_custom_setting('thredds_url'),
+        # add the custom setting code here
     }
 
     return render(request, 'multidimensional_series_template/home.html', context)
