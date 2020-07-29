@@ -31,35 +31,7 @@ def home(request):
         name='variables',
         multiple=False,
         original=True,
-        options=(('Air Temperature', 'Tair_f_inst'),
-                 ('Canopy Water Amount', 'CanopInt_inst'),
-                 ('Downward Heat Flux In Soil', 'Qg_tavg'),
-                 ('Evaporation Flux From Canopy', 'ECanop_tavg'),
-                 ('Evaporation Flux From Soil', 'ESoil_tavg'),
-                 ('Potential Evaporation Flux', 'PotEvap_tavg'),
-                 ('Precipitation Flux', 'Rainf_f_tavg'),
-                 ('Rainfall Flux', 'Rainf_tavg'),
-                 ('Root Zone Soil Moisture', 'RootMoist_inst'),
-                 ('Snowfall Flux', 'Snowf_tavg'),
-                 ('Soil Temperature', 'SoilTMP0_10cm_inst'),
-                 ('Specific Humidity', 'Qair_f_inst'),
-                 ('Subsurface Runoff Amount', 'Qsb_acc'),
-                 ('Surface Air Pressure', 'Psurf_f_inst'),
-                 ('Surface Albedo', 'Albedo_inst'),
-                 ('Surface Downwelling Longwave Flux In Air', 'LWdown_f_tavg'),
-                 ('Surface Downwelling Shortwave Flux In Air', 'SWdown_f_tavg'),
-                 ('Surface Net Downward Longwave Flux', 'Lwnet_tavg'),
-                 ('Surface Net Downward Shortwave Flux', 'Swnet_tavg'),
-                 ('Surface Runoff Amount', 'Qs_acc'),
-                 ('Surface Snow Amount', 'SWE_inst'),
-                 ('Surface Snow Melt Amount', 'Qsm_acc'),
-                 ('Surface Snow Thickness', 'SnowDepth_inst'),
-                 ('Surface Temperature', 'AvgSurfT_inst'),
-                 ('Surface Upward Latent Heat Flux', 'Qle_tavg'),
-                 ('Surface Upward Sensible Heat Flux', 'Qh_tavg'),
-                 ('Transpiration Flux From Veg', 'Tveg_tavg'),
-                 ('Water Evaporation Flux', 'Evap_tavg'),
-                 ('Wind Speed', 'Wind_f_inst')),
+        options=(),
     )
 
     regions = SelectInput(
@@ -187,47 +159,3 @@ def home(request):
     }
 
     return render(request, 'multidimensional_series_template/home.html', context)
-
-
-def request_time_series(request):
-    # all the parameters sent by the user via javascript are in request.GET (compare with plotly.js)
-    # print(request.GET)
-    loc_type = request.GET.get('loc_type')
-    variable = request.GET.get('variable')
-    coords = request.GET.getlist('coords[]')
-
-    # get a list of all the GLDAS files we put in the thredds directory via the custom setting
-    path = App.get_custom_setting('thredds_path')
-    list_of_files = sorted(glob.glob(os.path.join(path, '*.nc4')))
-
-    # get the time series for the location the user chose
-    # these functions return pandas dataframes with an index, datetime column, and columns of extracted values
-    if loc_type == 'Point':
-        time_series = geomatics.timeseries.point(
-            files=list_of_files,
-            var=variable,
-            coords=(float(coords[0]), float(coords[1]),),
-            dims=('lon', 'lat'),
-            t_dim='time',
-        )
-    else:  # the other option was a bounding box
-        time_series = geomatics.timeseries.bounding_box(
-            files=list_of_files,
-            var=variable,
-            min_coords=(float(coords[0]), float(coords[1]),),
-            max_coords=(float(coords[2]), float(coords[3]),),
-            dims=('lon', 'lat'),
-            t_dim='time',
-        )
-
-    # we need to build our own list of dates because the GLDAS netcdf files do not store their dates in typical
-    # formats which can be automatically parsed by the python packages used to read the files. We can convert the
-    # datetime values we got to their proper format using datetime and dateutil. Since there are only 12 dates and to
-    # keep things simple for a workshop, I will just manually type the list of dates
-    time_series['datetime'] = ['2019-01-01', '2019-02-01', '2019-03-01', '2019-04-01', '2019-05-01', '2019-06-01',
-                               '2019-07-01', '2019-08-01', '2019-09-01', '2019-10-01', '2019-11-01', '2019-12-01', ]
-
-    return JsonResponse({
-        'x': time_series['datetime'].values.tolist(),
-        'y': time_series['values'].values.tolist()
-    })

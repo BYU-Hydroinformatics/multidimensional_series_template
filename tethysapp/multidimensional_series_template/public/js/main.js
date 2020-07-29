@@ -45,9 +45,6 @@ $(".customs").keyup(function () {this.value = this.value.replace(/i[a-z]/, '')})
 // data controls
 $("#variables").change(function () {clearMap();update();getDrawnChart(drawnItems);});
 $("#dates").change(function () {clearMap();update();getDrawnChart(drawnItems);});
-$('#charttype').change(function () {makechart()});
-$("#regions").change(function () {changeregions('region')});
-$("#countriesGO").click(function () {changeregions('country')});
 
 // display controls
 $("#display").click(function() {$("#displayopts").toggle();});
